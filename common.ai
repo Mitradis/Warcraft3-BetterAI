@@ -948,8 +948,13 @@ function StartUnit takes integer ask_qty, integer unitid, integer town returns b
         return true
     endif
     set need_qty = ask_qty - have_qty
-    set gold_cost = GetUnitGoldCost(unitid)
-    set wood_cost = GetUnitWoodCost(unitid)
+	if unitid == TREE_AGES or unitid == TREE_ETERNITY or unitid == KEEP or unitid == CASTLE or unitid == STRONGHOLD or unitid == FORTRESS or unitid == NECROPOLIS_2 or unitid == NECROPOLIS_3 then
+		set gold_cost = GetRandomInt(300,360)
+		set wood_cost = GetRandomInt(180,210)
+	else
+		set gold_cost = GetUnitGoldCost(unitid)
+		set wood_cost = GetUnitWoodCost(unitid)
+	endif
     if gold_cost == 0 then
         set afford_gold = need_qty
     else
@@ -1004,16 +1009,16 @@ function StartExpansion takes integer qty, integer hall returns boolean
         return true
     endif
     set take_exp = true
+    if GetExpansionFoe() != null then
+        return true
+    endif
     set gold_cost = GetUnitGoldCost(hall)
     if gold_cost > total_gold then
         return false
     endif
-    set total_gold = total_gold - gold_cost
-    if GetExpansionFoe() != null then
-        return true
-    endif
     set peon = GetExpansionPeon()
     if peon != null then
+	    set total_gold = total_gold - gold_cost
         return SetExpansion(peon,hall)
     endif
     return true
@@ -1026,7 +1031,7 @@ function OneBuildLoop takes nothing returns nothing
     set total_gold = GetGold() - gold_buffer
     set total_wood = GetWood()
     loop
-        exitwhen index == build_length
+        exitwhen index >= build_length
         set qty = build_qty [index]
         set id  = build_item[index]
         set tp  = build_type[index]
@@ -1045,14 +1050,13 @@ function OneBuildLoop takes nothing returns nothing
     endloop
 endfunction
 function StaggerSleep takes real base, real spread returns nothing
-    call Sleep(base + spread * I2R(GetAiPlayer()) / I2R(GetPlayers()))
+    call Sleep(base + spread)
 endfunction
 function BuildLoop takes nothing returns nothing
-    call OneBuildLoop()
-    call StaggerSleep(1,2)
+	call Sleep(0.5)
     loop
         call OneBuildLoop()
-        call Sleep(2)
+        call Sleep(1)
     endloop
 endfunction
 function StartBuildLoop takes nothing returns nothing
