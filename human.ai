@@ -1,0 +1,480 @@
+//==================================================================================================
+//  $Id: human.ai,v 1.15 2003/04/23 19:26:00 bfitch Exp $
+//==================================================================================================
+globals
+    boolean b_hero1_done        = false
+    boolean b_hero2_done        = false
+    boolean b_hero3_done        = false
+    integer c_altar_done        = 0
+    integer c_arcanevault_done  = 0
+    integer c_aviary_done       = 0
+    integer c_barracks_done     = 0
+    integer c_breaker           = 0
+    integer c_breaker_done      = 0
+    integer c_castle            = 0
+    integer c_castle_done       = 0
+    integer c_food_made         = 0
+    integer c_food_used         = 0
+    integer c_footman           = 0
+    integer c_footman_done      = 0
+    integer c_gold              = 0
+    integer c_gryphon           = 0
+    integer c_gryphon_done      = 0
+    integer c_gyro              = 0
+    integer c_gyro_done         = 0
+    integer c_hall              = 0
+    integer c_hall_done         = 0
+    integer c_hawk              = 0
+    integer c_hawk_done         = 0
+    integer c_hero1             = 0
+    integer c_hero1_done        = 0
+    integer c_hero2             = 0
+    integer c_hero2_done        = 0
+    integer c_hero3             = 0
+    integer c_hero3_done        = 0
+    integer c_house             = 0
+    integer c_house_done        = 0
+    integer c_keep              = 0
+    integer c_keep_done         = 0
+    integer c_knight            = 0
+    integer c_knight_done       = 0
+    integer c_mill_done         = 0
+    integer c_mines             = 0
+    integer c_mines_done        = 0
+    integer c_mortar_done       = 0
+    integer c_peasant           = 0
+    integer c_peasant_done      = 0
+    integer c_priest            = 0
+    integer c_priest_done       = 0
+    integer c_rifleman          = 0
+    integer c_rifleman_done     = 0
+    integer c_sanctum_done      = 0
+    integer c_smith_done        = 0
+    integer c_sorceress         = 0
+    integer c_sorceress_done    = 0
+    integer c_tank              = 0
+    integer c_tank_done         = 0
+    integer c_wood              = 0
+    integer c_workshop_done     = 0
+    integer c_zep               = 0
+    integer level               = 0
+    integer rnd                 = 0
+    integer towers_cd           = 0
+endglobals
+
+//--------------------------------------------------------------------------------------------------
+//  set_skills
+//--------------------------------------------------------------------------------------------------
+function set_skills takes nothing returns nothing
+
+    set skill[ 1] = HOLY_BOLT
+    set skill[ 2] = DEVOTION_AURA
+    set skill[ 3] = HOLY_BOLT
+    set skill[ 4] = DIVINE_SHIELD
+    set skill[ 5] = HOLY_BOLT
+    set skill[ 6] = RESURRECTION
+    set skill[ 7] = DEVOTION_AURA
+    set skill[ 8] = DEVOTION_AURA
+    set skill[ 9] = DIVINE_SHIELD
+    set skill[10] = DIVINE_SHIELD
+
+    call SetSkillArray(1,PALADIN)
+    call SetSkillArray(2,PALADIN)
+    call SetSkillArray(3,PALADIN)
+
+    set skill[ 1] = THUNDER_BOLT
+    set skill[ 2] = BASH
+    set skill[ 3] = THUNDER_BOLT
+    set skill[ 4] = THUNDER_CLAP
+    set skill[ 5] = THUNDER_BOLT
+    set skill[ 6] = AVATAR
+    set skill[ 7] = BASH
+    set skill[ 8] = BASH
+    set skill[ 9] = THUNDER_CLAP
+    set skill[10] = THUNDER_CLAP
+
+    call SetSkillArray(1,MTN_KING)
+    call SetSkillArray(2,MTN_KING)
+    call SetSkillArray(3,MTN_KING)
+
+    set skill[ 1] = WATER_ELEMENTAL
+    set skill[ 2] = BRILLIANCE_AURA
+    set skill[ 3] = WATER_ELEMENTAL
+    set skill[ 4] = BLIZZARD
+    set skill[ 5] = WATER_ELEMENTAL
+    set skill[ 6] = MASS_TELEPORT
+    set skill[ 7] = BRILLIANCE_AURA
+    set skill[ 8] = BRILLIANCE_AURA
+    set skill[ 9] = BLIZZARD
+    set skill[10] = BLIZZARD
+
+    call SetSkillArray(1,ARCHMAGE)
+    call SetSkillArray(2,ARCHMAGE)
+    call SetSkillArray(3,ARCHMAGE)
+
+    set skill[ 1] = FLAME_STRIKE
+    set skill[ 2] = SIPHON_MANA
+    set skill[ 3] = FLAME_STRIKE
+    set skill[ 4] = SIPHON_MANA
+    set skill[ 5] = FLAME_STRIKE
+    set skill[ 6] = SUMMON_PHOENIX
+    set skill[ 7] = SIPHON_MANA
+    set skill[ 8] = BANISH
+    set skill[ 9] = BANISH
+    set skill[10] = BANISH
+
+    call SetSkillArray(1,BLOOD_MAGE)
+    call SetSkillArray(2,BLOOD_MAGE)
+    call SetSkillArray(3,BLOOD_MAGE)
+endfunction
+
+//--------------------------------------------------------------------------------------------------
+//  setup_force
+//--------------------------------------------------------------------------------------------------
+function setup_force takes nothing returns nothing
+    call AwaitMeleeHeroes()
+    call InitMeleeGroup()
+    call SetMeleeGroup( hero_id )
+    call SetMeleeGroup( hero_id2 )
+    call SetMeleeGroup( hero_id3 )
+    call SetMeleeGroup( FOOTMEN )
+    call SetMeleeGroup( KNIGHT )
+    call SetMeleeGroup( RIFLEMEN )
+    call SetMeleeGroup( PRIEST )
+    call SetMeleeGroup( SORCERESS )
+    call SetMeleeGroup( GRYPHON )
+    call SetMeleeGroup( COPTER )
+    call SetMeleeGroup( SPELL_BREAKER )
+    call SetMeleeGroup( HUMAN_DRAGON_HAWK )
+    call SetInitialWave(10)
+endfunction
+
+//--------------------------------------------------------------------------------------------------
+//  attack_sequence
+//--------------------------------------------------------------------------------------------------
+function attack_sequence takes nothing returns nothing
+    loop
+        exitwhen c_hero1_done > 0
+        call Sleep(2)
+    endloop
+    call StaggerSleep(0,2)
+    loop
+        loop
+            exitwhen not CaptainRetreating()
+            call Sleep(2)
+        endloop
+        call setup_force()
+        set max_creeps = level * 4 / 5
+        set min_creeps = max_creeps - 10
+        if min_creeps < 0 then
+            set min_creeps = 0
+        endif
+        set allow_air_creeps = c_rifleman_done + c_hawk_done + c_gyro_done + c_gryphon_done >= 5
+        call SingleMeleeAttack(take_exp and level > 20,level > 30,false,c_gyro_done > 0 or c_gryphon_done > 0 or c_hawk_done > 0)
+    endloop
+endfunction
+
+//--------------------------------------------------------------------------------------------------
+//  init_vars
+//--------------------------------------------------------------------------------------------------
+function init_vars takes nothing returns nothing
+    set b_hero1_done        = GetUnitCountDone(hero_id) > 0
+    set b_hero2_done        = GetUnitCountDone(hero_id2) > 0
+    set b_hero3_done        = GetUnitCountDone(hero_id3) > 0
+    set c_altar_done        = GetUnitCountDone(HUMAN_ALTAR)
+    set c_arcanevault_done  = GetUnitCount(ARCANE_VAULT)
+    set c_aviary_done       = GetUnitCountDone(AVIARY)
+    set c_barracks_done     = GetUnitCountDone(BARRACKS)
+    set c_breaker           = GetUnitCount(SPELL_BREAKER)
+    set c_breaker_done      = GetUnitCountDone(SPELL_BREAKER)
+    set c_castle            = TownCount(CASTLE)
+    set c_castle_done       = TownCountDone(CASTLE)
+    set c_food_made         = c_hall * GetFoodMade(TOWN_HALL) + c_house * GetFoodMade(HOUSE)
+    set c_food_used         = FoodUsed()
+    set c_footman           = GetUnitCount(FOOTMAN)
+    set c_footman_done      = GetUnitCountDone(FOOTMAN)
+    set c_gold              = GetGold()
+    set c_gryphon           = GetUnitCount(GRYPHON)
+    set c_gryphon_done      = GetUnitCountDone(GRYPHON)
+    set c_gyro              = GetUnitCount(COPTER)
+    set c_gyro_done         = GetUnitCountDone(COPTER)
+    set c_hall              = TownCount(TOWN_HALL)
+    set c_hall_done         = TownCountDone(TOWN_HALL)
+    set c_hawk              = GetUnitCount(HUMAN_DRAGON_HAWK)
+    set c_hawk_done         = GetUnitCountDone(HUMAN_DRAGON_HAWK)
+    set c_hero1             = GetUnitCount(hero_id)
+    set c_hero1_done        = GetUnitCountDone(hero_id)
+    set c_hero2             = GetUnitCount(hero_id2)
+    set c_hero2_done        = GetUnitCountDone(hero_id2)
+    set c_hero3             = GetUnitCount(hero_id3)
+    set c_hero3_done        = GetUnitCountDone(hero_id3)
+    set c_house             = GetUnitCount(HOUSE)
+    set c_house_done        = GetUnitCountDone(HOUSE)
+    set c_keep              = TownCount(KEEP)
+    set c_keep_done         = TownCountDone(KEEP)
+    set c_knight            = GetUnitCount(KNIGHT)
+    set c_knight_done       = GetUnitCountDone(KNIGHT)
+    set c_mill_done         = GetUnitCountDone(LUMBER_MILL)
+    set c_mortar_done       = GetUnitCountDone(MORTAR)
+    set c_peasant           = GetUnitCount(PEASANT)
+    set c_peasant_done      = GetUnitCountDone(PEASANT)
+    set c_priest            = GetUnitCount(PRIEST)
+    set c_priest_done       = GetUnitCountDone(PRIEST)
+    set c_rifleman          = GetUnitCount(RIFLEMAN)
+    set c_rifleman_done     = GetUnitCountDone(RIFLEMAN)
+    set c_sanctum_done      = GetUnitCountDone(SANCTUM)
+    set c_smith_done        = GetUnitCountDone(BLACKSMITH)
+    set c_sorceress         = GetUnitCount(SORCERESS)
+    set c_sorceress_done    = GetUnitCountDone(SORCERESS)
+    set c_tank              = GetUnitCount(TANK)
+    set c_tank_done         = GetUnitCountDone(TANK)
+    set c_wood              = GetWood()
+    set c_workshop_done     = GetUnitCountDone(WORKSHOP)
+    set c_zep               = GetUnitCount(ZEPPELIN)
+endfunction
+
+//--------------------------------------------------------------------------------------------------
+//  set_vars
+//--------------------------------------------------------------------------------------------------
+function set_vars takes nothing returns nothing
+    loop
+        call init_vars()
+        call Sleep(1)
+    endloop
+endfunction
+
+//--------------------------------------------------------------------------------------------------
+//  build_sequence
+//--------------------------------------------------------------------------------------------------
+function food_allowed takes integer qty returns boolean
+    return ((c_mines_done > 1 and c_food_used+qty <= 100) or (c_mines_done < 2 and c_food_used+qty < 80)) and c_food_used+qty <= c_hall_done * GetFoodMade(TOWN_HALL) + c_house_done * GetFoodMade(HOUSE)
+endfunction
+function build_sequence takes nothing returns nothing
+    local integer towns = 1
+    local integer worker
+    call InitBuildArray()
+    set rnd = rnd + 1
+    if rnd > 3 then
+        set rnd = 1
+    endif
+    set level = 4*c_hero1_done + 5*(c_hero2_done + c_hero3_done) + c_gyro_done + 2*(c_mortar_done + c_footman_done + c_priest_done + c_sorceress_done + c_breaker_done) + 3*(c_rifleman_done + c_tank_done + c_hawk_done) + 4*c_knight_done + 5*c_gryphon_done
+    set towers_cd = towers_cd + 1
+    if towers_cd > 10 then
+        set towers_cd = 0
+    endif
+    set worker = c_mines_done * 5 + 8
+    if worker < 3 then
+        set worker = 3
+    endif
+    call BasicExpansion( c_mines < 1 and c_peasant_done > 0, TOWN_HALL )
+    if c_peasant == c_peasant_done and c_peasant_done < worker and GetUnitCountDone(TOWN_HALL) + GetUnitCountDone(KEEP) + GetUnitCountDone(CASTLE) > 0 and food_allowed(1) then
+        call SetBuildUnit( c_peasant_done+1, PEASANT )
+    endif
+    if c_food_used + 5 >= c_food_made and c_food_made < 100 then
+        call SetBuildUnit( c_house_done+1, HOUSE )
+    endif
+    if c_hall < 1 and c_peasant_done > 0 then
+        call SetBuildUnit( 1, TOWN_HALL )
+    endif
+    if c_altar_done < 1 then
+        call SetBuildUnit( 1, HUMAN_ALTAR )
+    elseif c_hero1 == c_hero1_done and c_hero2 == c_hero2_done and c_hero3 == c_hero3_done and food_allowed(5) then
+        if b_hero1_done then
+            if b_hero2_done then
+                if b_hero3_done or c_castle_done > 0 then
+                    call SetBuildUnit( 1, hero_id3 )
+                endif
+            elseif c_keep_done > 0 then
+                call SetBuildUnit( 1, hero_id2 )
+            endif
+        else
+            call SetBuildUnit( 1, hero_id )
+        endif
+    endif
+    if c_barracks_done < 1 then
+        call SetBuildUnit( 1, BARRACKS )
+    elseif c_footman == c_footman_done and c_rifleman == c_rifleman_done and c_knight == c_knight_done then
+        if c_smith_done > 0 and c_mill_done > 0 and c_castle_done > 0 and rnd > 1 then
+            if c_knight_done > 0 and GetUpgradeLevel(UPG_BREEDING) < 1 then
+                call SetBuildUpgr( 1, UPG_BREEDING )
+            elseif c_knight_done < 4 and food_allowed(4) then
+                call SetBuildUnit( c_knight_done+1, KNIGHT )
+            endif
+        elseif c_smith_done < 1 or rnd > 1 then
+            if c_footman_done > 2 and GetUpgradeLevel(UPG_DEFEND) < 1 then
+                call SetBuildUpgr( 1, UPG_DEFEND )
+            elseif c_footman_done < 6 and food_allowed(2) then
+                call SetBuildUnit( c_footman_done+1, FOOTMAN )
+            endif
+        elseif c_smith_done > 0 then
+            if c_keep_done > 0 and c_rifleman_done > 0 and GetUpgradeLevel(UPG_GUN_RANGE) < 1 then
+                call SetBuildUpgr( 1, UPG_GUN_RANGE )
+            elseif c_rifleman_done < 4 and food_allowed(3) then
+                call SetBuildUnit( c_rifleman_done+1, RIFLEMAN )
+            endif
+        endif
+    endif
+    if c_arcanevault_done < 1 then
+        call SetBuildUnit( 1, ARCANE_VAULT )
+    endif
+    if c_smith_done < 1 then
+        call SetBuildUnit( 1, BLACKSMITH )
+    endif
+    if c_mill_done < 1 then
+        call SetBuildUnit( 1, LUMBER_MILL )
+    endif
+    if GetUnitCountDone(TOWN_HALL) > 0 and TownCount(KEEP) < 1 and worker <= c_peasant_done then
+        call SetBuildUnit( 1, KEEP )
+    endif
+    call BasicExpansion( c_mines < 2, TOWN_HALL )
+    if c_mines > 1 and c_gold > 300 then
+        loop
+            exitwhen towns > 3
+            if GetTownUnitCount(TOWN_HALL,towns,false) > 0 then
+                if TownCountTown(WATCH_TOWER,towns) < 2 then
+                    call SecondaryTown( towns, 2, WATCH_TOWER )
+                elseif GetTownUnitCount(WATCH_TOWER,towns,true) > 0 and GetTownUnitCount(GUARD_TOWER,towns,false) < 2 and towers_cd == 10 then
+                    set towers_cd = -42
+                    call StartUnit(2,GUARD_TOWER,towns)
+                endif
+            endif
+            set towns = towns + 1
+        endloop
+    elseif c_mines < 1 and c_gold < 800 then
+        return
+    endif
+    if c_keep_done > 0 then
+        call SetBuildUpgr( 1, UPG_WOOD )
+        if c_castle_done > 0 then
+            call SetBuildUpgr( 2, UPG_WOOD )
+        endif
+    endif
+    if c_gold > 300 and c_wood > 200 then
+        call SetBuildUpgr( 1, UPG_MELEE )
+        call SetBuildUpgr( 1, UPG_ARMOR )
+        call SetBuildUpgr( 1, UPG_RANGED )
+        call SetBuildUpgr( 1, UPG_LEATHER )
+        if c_keep_done > 0 then
+            call SetBuildUpgr( 2, UPG_MELEE )
+            call SetBuildUpgr( 2, UPG_ARMOR )
+            call SetBuildUpgr( 2, UPG_RANGED )
+            call SetBuildUpgr( 2, UPG_LEATHER )
+            if c_castle_done > 0 and c_gold > 400 and c_wood > 300 then
+                call SetBuildUpgr( 3, UPG_MELEE )
+                call SetBuildUpgr( 3, UPG_ARMOR )
+                call SetBuildUpgr( 3, UPG_RANGED )
+                call SetBuildUpgr( 3, UPG_LEATHER )
+            endif
+        endif
+    endif
+    if GetUnitCountDone(KEEP) > 0 and GetUnitCount(CASTLE) < 1 and worker <= c_peasant_done and c_priest + c_sorceress + c_breaker + c_hawk + c_gyro > 5 and level > 30 then
+        call SetBuildUnit( 1, CASTLE )
+    endif
+    if c_sanctum_done < 1 then
+        call SetBuildUnit( 1, SANCTUM )
+    elseif c_priest == c_priest_done and c_sorceress == c_sorceress_done and c_breaker == c_breaker_done then
+        if rnd == 1 then
+            if c_priest_done > 0 and GetUpgradeLevel(UPG_PRAYING) < 1 then
+                call SetBuildUpgr( 1, UPG_PRAYING )
+            elseif c_castle_done > 0 and c_priest_done > 0 and GetUpgradeLevel(UPG_PRAYING) < 2 then
+                call SetBuildUpgr( 2, UPG_PRAYING )
+            elseif c_priest_done < 3 and food_allowed(2) then
+                call SetBuildUnit( c_priest_done+1, PRIEST )
+            endif
+        elseif rnd == 2 then
+            if c_sorceress_done > 0 and GetUpgradeLevel(UPG_SORCERY) < 1 then
+                call SetBuildUpgr( 1, UPG_SORCERY )
+            elseif c_castle_done > 0 and c_sorceress_done > 0 and GetUpgradeLevel(UPG_SORCERY) < 2 then
+                call SetBuildUpgr( 2, UPG_SORCERY )
+            elseif c_sorceress_done < 2 and food_allowed(2) then
+                call SetBuildUnit( c_sorceress_done+1, SORCERESS )
+            endif
+        elseif c_arcanevault_done > 0 then
+            if c_castle_done > 0 and c_breaker_done > 0 and GetUpgradeLevel(UPG_CONT_MAGIC) < 1 then
+                call SetBuildUpgr( 1, UPG_CONT_MAGIC )
+            elseif c_breaker_done < 4 and food_allowed(3) then
+                call SetBuildUnit( c_breaker_done+1, SPELL_BREAKER )
+            endif
+        endif
+    endif
+    if c_aviary_done < 1 then
+        call SetBuildUnit( 1, AVIARY )
+    elseif c_gryphon == c_gryphon_done and c_hawk == c_hawk_done then
+        if c_castle_done > 0 and rnd > 1 then
+            if c_gryphon_done > 0 and GetUpgradeLevel(UPG_HAMMERS) < 1 then
+                call SetBuildUpgr( 1, UPG_HAMMERS )
+            elseif c_gryphon_done < 2 and food_allowed(4) then
+                call SetBuildUnit( c_gryphon_done+1, GRYPHON )
+            endif
+        else
+            if c_castle_done > 0 and c_hawk_done > 0 and GetUpgradeLevel(UPG_CLOUD) < 1 then
+                call SetBuildUpgr( 1, UPG_CLOUD )
+            elseif c_hawk_done < 2 and food_allowed(3) then
+                call SetBuildUnit( c_hawk_done+1, HUMAN_DRAGON_HAWK )
+            endif
+        endif
+    endif
+    if c_workshop_done < 1 then
+        call SetBuildUnit( 1, WORKSHOP )
+    elseif c_tank == c_tank_done and c_gyro == c_gyro_done then
+        if c_castle_done > 0 and rnd > 1 then
+            if c_tank_done > 0 and GetUpgradeLevel(UPG_TANK) < 1 then
+                call SetBuildUpgr( 1, UPG_TANK )
+            elseif c_tank_done < 2 and food_allowed(3) then
+                call SetBuildUnit( c_tank_done+1, TANK )
+            endif
+        else
+            if c_castle_done > 0 and c_gyro_done > 0 and (GetUpgradeLevel(UPG_BOMBS) < 1 or GetUpgradeLevel(UPG_FLAK) < 1) then
+                call SetBuildUpgr( 1, UPG_BOMBS )
+                call SetBuildUpgr( 1, UPG_FLAK )
+            elseif c_gyro_done < 2 and food_allowed(1) then
+                call SetBuildUnit( c_gyro_done+1, COPTER )
+            endif
+        endif
+    endif
+    if c_zep < 1 then
+        call GetZeppelin()
+    endif
+endfunction
+
+//--------------------------------------------------------------------------------------------------
+//  peon_assignment
+//--------------------------------------------------------------------------------------------------
+function peon_assignment takes nothing returns nothing
+    local integer townid = 0
+    call build_sequence()
+    call Sleep(1.5)
+    loop
+        call ClearHarvestAI()
+        set c_mines = 0
+        set c_mines_done = 0
+        loop
+            exitwhen townid > 3
+            if TownHasMine(townid) then
+                if TownCountEx(TOWN_HALL,true,townid) > 0 then
+                    call HarvestGold(townid,5)
+                    set c_mines_done = c_mines_done + 1
+                elseif GetTownUnitCount(TOWN_HALL,townid,false) > 0 then
+                    set c_mines = c_mines + 1
+                endif
+            endif
+            set townid = townid + 1
+        endloop
+        set c_mines = c_mines + c_mines_done
+        set townid = 0
+        call HarvestWood(0, c_peasant_done - c_mines_done * 5)
+        call build_sequence()
+        call Sleep(1)
+    endloop
+endfunction
+
+//--------------------------------------------------------------------------------------------------
+//    main
+//--------------------------------------------------------------------------------------------------
+function main takes nothing returns nothing
+    call PickMeleeHero(RACE_HUMAN)
+    call set_skills()
+    call StandardAI(function SkillArrays, function peon_assignment, function attack_sequence)
+    call StartThread(function set_vars)
+    call PlayGame()
+endfunction
